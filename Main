@@ -17,53 +17,95 @@
  ***************************************************************************/
 
 #include "Adafruit_CCS811.h"
+#include "Wire.h"
 
-// Declares controller object ccs
+// Controller object
 Adafruit_CCS811 ccs;
 
+// Declares output as a PrintWriter -> using this to write to file
+// PrintWriter output;
+
+/**
+  To setup everything we will need to run this sensor.
+*/
 void setup() {
+  
   // Transmit 9600 bits of data per second
   Serial.begin(9600);
+  
+  // Opens a file for the PrintWriter to write to
+  // output = createWriter("GasSensorData.csv");
 
   Serial.println("CCS811 test");
   
-  // Self explanatory
-  if(!ccs.begin()){
+  Serial.println("got here");
+  
+  // If the sensor fails to start up, notify the user
+  if(!ccs.begin()) {
     Serial.println("Failed to start sensor! Please check your wiring.");
-    // Allows the program to timeout
+    // Forces the sensor to idle
     while(1);
   }
+  
+  Serial.println("got here");
 
-  //calibrate temperature sensor
-  while(!ccs.available());
+  // Calibrate temperature sensor
+  // This waits until the sensor is ready before allowing the program to go to the next step
+  while(!ccs.available()) {
+    Serial.println("Waiting on temp sensor...");
+    delay(1000);
+  }
+  
+  Serial.println("got here");
+  
+  // Stores the instantaneous temperature reading as soon as the sensor is available.
   float temp = ccs.calculateTemperature();
+  
+  Serial.println("got here");
+  
+  // Sets offset from raw data to displayed data for the temperature
   ccs.setTempOffset(temp - 25.0);
+  
+  Serial.println("got here");
 }
 
-// This code is garbage
-int n = 0;
 void loop() {
-  // TODO set up file to write to, create programs for CO2 and VOCs separately?
-  // TODO figure out data transmission. csv -> excel?
-  while(n<10){
-    if(ccs.available()){
+  
+  // Prints out column headers for data displayed in serial port
+  Serial.print("CO2(ppm), ");
+  Serial.print("TVOC(ppb), ");
+  Serial.print("Temp(C),\n");
+  
+  // Now we start measuring data
+  while(1) {
+    // If the sensor is available...
+    if(ccs.available()) {
+      
       float temp = ccs.calculateTemperature();
-      if(!ccs.readData()){
-        Serial.print("CO2: ");
+      
+      // Check if there is data ro be read
+      if(!ccs.readData()) {
         Serial.print(ccs.geteCO2());
-        Serial.print("ppm, TVOC: ");
+        Serial.print(", ");
         Serial.print(ccs.getTVOC());
-        Serial.print("ppb   Temp:");
-        Serial.println(temp);
+        Serial.print(", ");
+        Serial.print(temp);
+        Serial.print(",\n");
         int eCO2 = ccs.geteCO2();
         int TVOC = ccs.getTVOC();
-        n = n +1;
       }
-      else{
+      else {
         Serial.println("ERROR!");
         while(1);
       }
     }
+    /*
+    Issue with PrintWriter as of rn 
+    String value = Serial.readString();
+      if (value) {
+        output.print(value);
+      }
+      */
     delay(500);
    }
 }
