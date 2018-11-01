@@ -25,6 +25,9 @@ Adafruit_CCS811 ccs;
 // Declares output as a PrintWriter -> using this to write to file
 // PrintWriter output;
 
+// Initializes a time variable
+double time = 0;
+
 /**
   To setup everything we will need to run this sensor.
 */
@@ -90,6 +93,8 @@ void loop() {
         Serial.print(ccs.getTVOC());
         Serial.print(", ");
         Serial.print(temp);
+        Serial.print(", ");
+        Serial.print(time);
         Serial.print(",\n");
         int eCO2 = ccs.geteCO2();
         int TVOC = ccs.getTVOC();
@@ -105,7 +110,8 @@ void loop() {
       if (value) {
         output.print(value);
       }
-      */
+    */
     delay(500);
+    time += 0.5;
    }
-}
+}v
